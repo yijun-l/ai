@@ -4,7 +4,7 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP(
     "weather-service",
     host="127.0.0.1",
-    port=8000,
+    port=8888,
     json_response=True,
     stateless_http=True
 )

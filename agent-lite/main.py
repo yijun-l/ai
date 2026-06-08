@@ -1,55 +1,54 @@
 # main.py
 import asyncio
-from config import MODEL_PATH, MCP_SERVER_URL, MAX_AGENT_STEPS, DEVICE_MAP
+from config import MODEL_PATH, MCP_SERVER_URL, MAX_AGENT_STEPS, DEVICE_MAP, SKILLS_DIR
 from core.llm_engine import LLMEngine
 from core.mcp_client import MCPSessionManager
-from core.parser import parse_tool_call
+from core.skill_registry import SkillRegistry
+from core.router import AgentRouter
+from core.worker import SkillWorker
 
 
-async def agent_loop():
-    # 1. Initialize Engine & MCP Manager
+async def main():
+    print("=== Initializing Agent-Lite (Skill-Driven) ===")
+
+    # 1. Initialize Engines and Registries
     llm = LLMEngine(MODEL_PATH, DEVICE_MAP)
     mcp_manager = MCPSessionManager(MCP_SERVER_URL)
 
-    # 2. Start Agent Session
+    registry = SkillRegistry(SKILLS_DIR)
+    router = AgentRouter(llm)
+    worker = SkillWorker(llm, MAX_AGENT_STEPS)
+
+    user_query = "What is the weather today in Beijing?"
+    print(f"\n[User Query]: {user_query}")
+
+    # 2. Start Session and Load Tools
     async with mcp_manager.connect() as session:
-        # Fetch and format tools
         tools_res = await session.list_tools()
         tools = mcp_manager.format_tools(tools_res)
-        print("Successfully loaded tools from MCP:", [t["function"]["name"] for t in tools])
+        print(f"Successfully loaded {len(tools)} tools from MCP Server.")
 
-        # Initialize conversation
-        messages = [
-            {"role": "system", "content": "You are a helpful AI Agent."},
-            {"role": "user", "content": "What is the weather today in Beijing?"}
-        ]
+        # ==========================================
+        # STAGE 1: Routing (Intent Classification)
+        # ==========================================
+        print("\n--- STAGE 1: ROUTING ---")
+        skills_metadata = registry.get_metadata_prompt()
+        selected_skill_name = router.route(user_query, skills_metadata)
 
-        # 3. Execution Loop
-        for step in range(MAX_AGENT_STEPS):
-            print(f"\n=== Agent Step {step + 1} ===")
+        print(f"Router Decision: Assigned to '{selected_skill_name}'")
+        selected_skill = registry.get_skill(selected_skill_name)
 
-            response_text = llm.generate(messages, tools)
-            print("Raw LLM Output:\n", response_text)
+        # ==========================================
+        # STAGE 2 & 3 & 4: Execution & Synthesis
+        # ==========================================
+        print("\n--- STAGE 2: EXECUTION ---")
+        final_answer = await worker.execute(user_query, selected_skill, session, tools)
 
-            func_name, arguments = parse_tool_call(response_text)
-
-            if func_name:
-                print("\n[Function Calling Triggered]")
-                print(f"Function: {func_name}")
-                print(f"Params: {arguments}")
-
-                # Execute tool via MCP
-                res = await session.call_tool(name=func_name, arguments=arguments)
-                result = res.content[0].text if res.content else "No result"
-                print(f"Tool Result: {result}")
-
-                # Update context
-                messages.append({"role": "assistant", "content": response_text})
-                messages.append({"role": "tool", "name": func_name, "content": result})
-            else:
-                print("\n[Final Answer]:\n", response_text)
-                break
+        print("\n==========================================")
+        print("[FINAL ANSWER DELIVERED TO USER]")
+        print("==========================================")
+        print(final_answer)
 
 
 if __name__ == "__main__":
-    asyncio.run(agent_loop())
+    asyncio.run(main())
