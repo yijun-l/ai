@@ -1,0 +1,18 @@
+# =======================================================================
+# AGENT-LITE Dependencies
+# =======================================================================
+
+# Force lightweight CPU-only PyTorch builds
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# LLM Engine & Inference (core/llm_engine.py)
+torch==2.7.1
+accelerate==1.13.0
+sentencepiece==0.2.1
+transformers==5.10.2
+
+# MCP Client & Server (core/mcp_client.py, mcp_server.py)
+mcp==1.27.2
+
+# YAML Metadata Parsing for Skills (core/skill_registry.py)
+PyYAML==6.0.3
