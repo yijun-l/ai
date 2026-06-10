@@ -1,0 +1,160 @@
+Date: June 8, 2026
+Target Board:  G450 Media Gateway
+Firmware Vintage: V43.30.00
+
+GENERAL:
+Customer impacting gateway issues will be addressed in new firmware versions within each supported gateway firmware series (e.g., 42.xx.xx is considered a firmware series). This ensures customer impacting fixes will be delivered and available within each supported gateway firmware series until End of Manufacturer Support. The latest gateway firmware version within a given firmware series should be used since it will have all of the latest fixes. New gateway features and functionality will not be supported in configurations running newer series of gateway firmware with older Communication Manager releases.
+
+To help ensure the highest quality solutions for our customers, Avaya recommends use of like gateway firmware version series and Communication Manager releases. This means the latest version within the Gateway Firmware Series are recommended with the following Communication Manager software releases:
+
+Gateway Firmware Series   Communication Manager Release
+=========================================================
+41.xx.xx                  8.1.x
+42.xx.xx                  10.1.x
+43.xx.xx                  10.2.x
+
+
+Newer gateway firmware versions running with older Communication Manager software releases are still supported. For example, running gateway firmware version series 42.xx.xx with Communication Manager 8.1.x is still supported.
+However, prolonged running in this type of mixed configuration is not recommended. Avaya recommends running in a mixed configuration only as long as necessary to support gateway upgrades prior to upgrading Communication Manager software. Newer Communication Manager software releases running with older gateway firmware versions are not supported.
+
+Gateway firmware support follows the Communication Manager software End of Manufacturer Support model. This means that as soon as a Communication Manager release goes End of Manufacturer Support, new gateway firmware will no longer be supported with that particular Communication Manager release. For example, when Communication Manager 8.1.x goes End of Manufacturer Support, gateway firmware series 41.xx.xx will no longer be supported.
+
+CONTENTS:
+	1) Statement of Applicability
+	2) Pre Install Instructions
+	3) File Download Instructions
+	4) Known Problems
+	5) Change History
+
+
+++++++++++++++++++++++++++++
+1) Statement of Applicability
+++++++++++++++++++++++++++++
+
+This version of firmware is only applicable for G450 Media Gateway Processor.
+
+Please see "General" Section above.
+
+
+++++++++++++++++++++++++++++
+2) Pre Install Instructions
+++++++++++++++++++++++++++++
+IMPORTANT! Gateways running a release prior to Release 7.1.2 Build 39.5.0 MUST first install Release 7.1.0.5 (Build 38.21.03 or Build 38.21.33) or newer 38.xx.yy release before installing Release 10.1.2.
+
+If you attempt to download Release 10.1.x.y prior to having installed Release 7.1.0.5 and execute the show download software status 10 command, the system will display the following error message:
+	"Incompatible software image for this type of device."
+
+After installing Release 7.1.0.5, you must enable or disable Avaya Logins before downloading Release 10.1.2 via CLI or SNMP. You can enable or disable Avaya Logins by using one of the following CLI commands:
+
+	login authentication services - To enable Avaya Logins.
+	no login authentication services - To disable Avaya Logins.
+
+If you neglect to enable or disable Avaya Logins by using one of the above commands, you will be prompted to do so when any of the following CLI commands are used to perform a firmware download:
+
+	copy ftp SW_imageA
+	copy ftp SW_imageB
+	copy scp SW_imageA
+	copy scp SW_imageB
+	copy tftp SW_imageA
+	copy tftp SW_imageB
+	copy usb SW_imageA
+	copy usb SW_imageB
+	copy https SW_imageA
+	copy https SW_ImageB
+
+With 10.2, the SSH client is now more restrictive in its support of key exchange (KEX) algorithms.
+Prior to Build 43.30.00, the SSH client "kex" configuration must be set only to diffie-hellman-group14-sha1:
+
+	G450-120(super)# ssh-client-configuration
+	G450-120(super-ssh-client-configuration)# set kex diffie-hellman-group14-sha1
+		KexAlgorithms: diffie-hellman-group14-sha1
+		Done!
+	G450-120(super-ssh-client-configuration)# exit
+
+Failure to restrict the client kex configuration in this way may result in failed gateway to SSH-server connections (e.g. "copy scp" CLI  commands).
+
+
+Notes:
+- The special "dadmin" login account previously associated with ASG in releases earlier than Release 7.1.2 is no longer available.
+- The gateway defaults to using TLS 1.2, PTLS, and unencrypted H.248 communication with CM. Refer to the "set link-encryption" command to adjust these settings.
+- The "show system" CLI command can be used display the gateway's model and mainboard hardware vintage.
+- The G450 will only download the G450 firmware specific to its hardware vintage. Firmware for G450 Vintage 4 must only use firmware having "g450v4_" indicated in the firmware image's filename. All other G450 vintages must only use firmware having "g450_" indicated in the firmware image's filename.
+- Solution Deployment Manager (SDM) does not currently support download to the G430v3 and G450v4 hardware. This will be provided in future releases of SDM.
+
+Required:
+=========
+
+- Avaya Communication Manager Release 7.x.y or later should be used since earlier versions are
+  no longer supported.
+
+- Avaya Communication Manager must be running at least Release 5.0 for G450 to operate.
+
+- Browser Access to the Customer Support Web site (http://support.avaya.com), or another way to get the Target File.
+
+- SCP, FTP or TFTP applications on your PC or Local Computer.
+
+- Target Board: G450 Media Gateway hardware version 1 or greater
+
+- An EASG service login or a customer administrator login is required for gateway configuration
+
+++++++++++++++++++++++++++++
+3) File Download Instructions
+++++++++++++++++++++++++++++
+
+Before attempting a download, please read the section in the Installation
+documentation titled "Upgrading / Downloading Software / Firmware".
+
+PLEASE NOTE: To ensure a successful download, from the system access terminal
+(SAT) or ASA, issue the command 'busyout board v#' before issuing 'copy tftp'
+command.  Upon completion, from the SAT or ASA issue the command 'release board v#'.
+
+++++++++++++++++++++++++++++
+4) Known Problems
+++++++++++++++++++++++++++++
+
+1) This BG version doesn't support multiple IPv6 VLAN interfaces.
+Workaround: Use single VLAN interface with IPv6.
+
+2) In Edge Mode, the gateway may fail to register with CM after a gateway reboot if the registration source port range
+was configured to use a very small range of ports (e.g. "set registration source-port-range 1024 1025").
+Workaround: Use as wide a range as possible when using the "set registration source-port-range" command
+or use the "set registration default source-port-range" command.
+
+++++++++++++++++++++++++++++
+5) Change History
+++++++++++++++++++++++++++++
+
+This is the 10.2.1.4 version (43.30.00) of G450 Media Gateway firmware.
+
+The following fixes have been introduced since the previous release:
+-----------------------------------------------------------------------------------------
+
+1) The "show root-ca" and "show gw-identity-cert" commands caused an exception to be logged
+on older G450 and G430 hardware versions (G450 v1-3 and G430 v1-2).
+
+2) The "show root-ca" caused a reboot when entering "q" to break out of displaying a
+very large certificate bundle.
+
+3) A new certificate index option was added to the "show root-ca" command to make it easier
+to display a specific certificate within a large bundle.
+Usage: show root-ca <app> [<index> [<cert>]]
+
+4) Two new CLI commands have been added for hostkey algorithm configuration for SSH Client
+(ssh-client-configuration) and SSH Server (ssh-server-configuration):
+   set hostkey-algorithms <alg> <alg> ...
+   show hostkey-algorithms
+
+These commands allow users to specify the hostkey algorithms used in the client/server
+proposals to the peer. This is in response to some customer's security scanners having
+objected to the use of ssh-rsa, mainly because of its use of SHA-1.
+
+The hostkey algorithms now available are:
+ssh-rsa rsa-sha2-256 rsa-sha2-512 ecdsa-sha2-nistp256 ecdsa-sha2-nistp384 ecdsa-sha2-nistp521
+
+5) The default Key Exchange algorithms have been changed and new Key Exchange algorithms have
+been added for SSH Client and Server. The default kex algorithms used for the SSH client are
+now only those that won't fail due to NIST SP 800-56A Rev. 3.
+
+The legacy diffie-hellman-group14-sha1 is still supported as a default, but security scanner
+complaints about SHA-1 required adding the following algorithms:
+ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521.
