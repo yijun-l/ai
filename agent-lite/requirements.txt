@@ -16,3 +16,7 @@ mcp==1.27.2
 
 # YAML Metadata Parsing for Skills (core/skill_registry.py)
 PyYAML==6.0.3
+
+chonkie==1.6.8
+chromadb==1.5.9
+tiktoken==0.13.0
