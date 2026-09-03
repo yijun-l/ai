@@ -32,24 +32,7 @@ GPUs are inherently optimized for dense matrix operations.
 
 Consider computing $C = A \times B$, multiplying a $(3 \times 2)$ matrix by a $(2 \times 3)$ matrix to produce a $(3 \times 3)$ output matrix:
 
-$$
-\begin{bmatrix}
-a_{11} & a_{12} \\
-a_{21} & a_{22} \\
-a_{31} & a_{32}
-\end{bmatrix}
-\times
-\begin{bmatrix}
-b_{11} & b_{12} & b_{13} \\
-b_{21} & b_{22} & b_{23}
-\end{bmatrix}
-=
-\begin{bmatrix}
-a_{11}b_{11} + a_{12}b_{21} & a_{11}b_{12} + a_{12}b_{22} & a_{11}b_{13} + a_{12}b_{23} \\
-a_{21}b_{11} + a_{22}b_{21} & a_{21}b_{12} + a_{22}b_{22} & a_{21}b_{13} + a_{22}b_{23} \\
-a_{31}b_{11} + a_{32}b_{21} & a_{31}b_{12} + a_{32}b_{22} & a_{31}b_{13} + a_{32}b_{23}
-\end{bmatrix}
-$$
+$$\begin{bmatrix} a_{11} & a_{12} \\ a_{21} & a_{22} \\ a_{31} & a_{32} \end{bmatrix} \times \begin{bmatrix} b_{11} & b_{12} & b_{13} \\ b_{21} & b_{22} & b_{23} \end{bmatrix} = \begin{bmatrix} a_{11}b_{11} + a_{12}b_{21} & a_{11}b_{12} + a_{12}b_{22} & a_{11}b_{13} + a_{12}b_{23} \\ a_{21}b_{11} + a_{22}b_{21} & a_{21}b_{12} + a_{22}b_{22} & a_{21}b_{13} + a_{22}b_{23} \\ a_{31}b_{11} + a_{32}b_{21} & a_{31}b_{12} + a_{32}b_{22} & a_{31}b_{13} + a_{32}b_{23} \end{bmatrix}$$
 
 To calculate the output matrix, the GPU must compute **9 output elements** ($c_{11}$ through $c_{33}$), where each element requires a 2-term dot product ($a_{i1}b_{1j} + a_{i2}b_{2j}$).
 
