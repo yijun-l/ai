@@ -6,10 +6,10 @@ class SGD:
 
     def step(self):
         # Update model parameters using gradient descent
-        self.model.w = self.model.w - self.lr * self.model.dw
+        self.model.W = self.model.W - self.lr * self.model.dW
         self.model.b = self.model.b - self.lr * self.model.db
 
     def zero_grad(self):
         # Reset gradients to zero
-        self.model.dw = 0.0
+        self.model.dW.fill(0.0)
         self.model.db = 0.0
