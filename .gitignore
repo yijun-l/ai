@@ -2,6 +2,7 @@
 .idea
 agent-lite/llm/
 agent-lite/rag_mcp_svc/vector_db/
+tokenizer.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
