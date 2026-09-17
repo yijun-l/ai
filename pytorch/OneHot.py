@@ -19,6 +19,8 @@ class OneHot:
         self.vocab_size = vocab_size
         self.dtype = dtype
 
+        self.eye = np.eye(self.vocab_size, dtype=self.dtype)
+
     # ---------- Forward pass ----------
     def forward(self, ids):
         """Convert token ids into one-hot vectors.
@@ -40,8 +42,7 @@ class OneHot:
                 f"ids must be a 1-D or 2-D array, got shape={ids.shape}"
             )
 
-        eye = np.eye(self.vocab_size, dtype=self.dtype)
-        return eye[ids]          # Fancy indexing: replace each id with its one-hot row
+        return self.eye[ids]          # Fancy indexing: replace each id with its one-hot row
 
     # ---------- Backward pass ----------
     def backward(self, dX):
@@ -56,4 +57,4 @@ class OneHot:
         Returns:
             dX unchanged.
         """
-        return dX
+        return None
