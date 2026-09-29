@@ -2,6 +2,7 @@ from pytorch.CharTokenizer import CharTokenizer
 from pytorch.OneHot import OneHot
 from pytorch.WindowDataset import WindowDataset
 from pytorch.Embedding import Embedding
+from pytorch.PositionEmbedding import PositionEmbedding
 
 if __name__ == "__main__":
     # Note: If 'tokenizer.json' does not exist, run '3-3 char_level_tokenizer.py' first to build the vocabulary.
@@ -32,3 +33,15 @@ if __name__ == "__main__":
 
     print(f"Embedding tensor shape (B, T, D): {x_emb.shape}")
     print(f"Embedding weight shape (V, D): {embedding.weight.shape}")
+
+    # Position Embedding
+    context_length = window_dataset.context_length
+    pos_embedding = PositionEmbedding(
+        context_length=context_length,
+        embed_dim=embed_dim,
+        seed=0,
+    )
+    x_pos = pos_embedding.forward(x_emb)
+
+    print(f"Position embedding weight shape (C, D): {pos_embedding.weight.data.shape}")
+    print(f"Position-encoded tensor shape (B, T, D): {x_pos.shape}")
