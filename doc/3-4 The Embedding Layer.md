@@ -86,4 +86,38 @@ Instead of learning parameters, the model calculates fixed wave-like patterns us
 
 $$PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/D}}\right), \quad PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/D}}\right)$$
 
- Because wave functions are infinite and continuous, this approach allows the model to extrapolate, meaning it can handle sentences longer than any it saw during training.
+Because wave functions are infinite and continuous, this approach allows the model to extrapolate, meaning it can handle sentences longer than any it saw during training.
+
+## Engineering Implementation
+
+The math is above. This section covers the three classes:
+
+### 1. Parameter: A Minimal Trainable Container
+
+Holds a weight and its gradient together, like `nn.Parameter`.
+
+- `data` and `grad` share the same `shape`, so no layer needs its own gradient buffer.
+
+- `zero_grad()` resets `grad` in place via Ellipsis indexing, keeping the array identity valid.
+
+### 2. Embedding: One-Hot Matmul as a Differentiable Lookup
+
+Implements $e = x \cdot W_{\text{emb}}$ directly, keeping the one-hot structure explicit.
+
+- **Shape**: $(\dots, V) \to (\dots, D)$. Batch and time dims stay intact.
+
+- **Forward**: `x_one_hot @ weight`, identical to a row gather but expressed as a matmul.
+
+- **Backward**: `X.T @ dY` is a scatter-add of `dY` into the selected rows.
+
+### 3. PositionEmbedding: Shared Table, Summed Gradient
+
+Every sample uses the same first T rows, so backward must sum over all leading dims.
+
+- **Forward**: $(\dots, T, D) + (T, D)$ broadcasts over every leading dim.
+
+- **Backward for input**: $Y = X + W[:T]$, so `dX` passes through unchanged.
+
+- **Backward for weight**: $\frac{\partial L}{\partial W[t]} = \sum_b \frac{\partial L}{\partial Y[b, t]}$. Leading dims are flattened and summed, producing $(T, D)$.
+
+- **`+=` supports accumulation**: multiple `backward` calls before `step` (gradient accumulation, chunked sequences) add up instead of overwriting.
