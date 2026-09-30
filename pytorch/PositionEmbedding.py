@@ -1,4 +1,5 @@
 import numpy as np
+
 from pytorch.Parameter import Parameter
 
 
@@ -24,9 +25,6 @@ class PositionEmbedding:
         rng = np.random.default_rng(seed)
         init = rng.standard_normal((context_length, embed_dim)).astype(dtype) * 0.02
         self.weight = Parameter(init)
-
-        # Gradient buffer, same shape as weight: (C, D).
-        self.dE = np.zeros_like(self.weight.data)
 
         # Cache for backward.
         self._seq_len = None
@@ -73,13 +71,13 @@ class PositionEmbedding:
         else:
             grad_T = dX
 
-        self.dE[:T] += grad_T
+        self.weight.grad[:T] += grad_T
         return dX
 
     def step(self, lr):
         """SGD update using the last computed gradient."""
-        self.weight.data -= lr * self.dE
-        self.dE[...] = 0.0
+        self.weight.data -= lr * self.weight.grad
+        self.weight.zero_grad()
 
     def parameters(self):
         """Return the list of trainable parameters."""

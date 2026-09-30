@@ -1,5 +1,7 @@
 import numpy as np
 
+from pytorch.Parameter import Parameter
+
 
 class Embedding:
     """Embedding layer whose forward input is a one-hot tensor.
@@ -12,7 +14,7 @@ class Embedding:
     where V = vocab_size, D = embed_dim.
 
     Forward:
-        y = x_one_hot @ weight
+        y = x_one_hot @ weight.data
 
     This is equivalent to gathering rows by token id, but here the
     selection is done by a matmul with the one-hot matrix.
@@ -31,10 +33,8 @@ class Embedding:
         self.dtype = dtype
 
         rng = np.random.default_rng(seed)
-        self.weight = rng.standard_normal((vocab_size, embed_dim)).astype(dtype) * 0.02
-
-        # Reusable gradient buffer.
-        self.dE = np.zeros_like(self.weight)
+        init = rng.standard_normal((vocab_size, embed_dim)).astype(dtype) * 0.02
+        self.weight = Parameter(init)
 
         # Cache for backward.
         self._x_one_hot = None
@@ -62,7 +62,7 @@ class Embedding:
             )
 
         self._x_one_hot = x_one_hot
-        return x_one_hot @ self.weight      # (..., V) @ (V, D) = (..., D)
+        return x_one_hot @ self.weight.data      # (..., V) @ (V, D) = (..., D)
 
     # ---------- Backward pass ----------
     def backward(self, dX):
@@ -93,11 +93,15 @@ class Embedding:
         dY2 = dX.reshape(-1, self.embed_dim)
 
         # dW = X.T @ dY   ->  (V, N) @ (N, D) = (V, D)
-        self.dE = X2.T @ dY2
+        self.weight.grad += X2.T @ dY2
 
-        return self.dE
+        return self.weight.grad
 
     # ---------- Convenience: parameter update ----------
     def step(self, lr):
         """Simple SGD update using the last computed gradient."""
-        self.weight -= lr * self.dE
+        self.weight.data -= lr * self.weight.grad
+        self.weight.zero_grad()
+
+    def parameters(self):
+        return [self.weight]
